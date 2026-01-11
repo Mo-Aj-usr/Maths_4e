@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QCM Fractions 4e - Eduscol</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .dashboard { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: #4CAF50; color: white; padding: 20px; text-align: center; }
+        .progress { background: #f0f0f0; height: 10px; margin: 10px 20px; border-radius: 5px; overflow: hidden; }
+        .progress-bar { background: #4CAF50; height: 100%; transition: width 0.3s; }
+        .question-container { padding: 30px; min-height: 400px; display: flex; flex-direction: column; justify-content: space-between; }
+        .question { font-size: 1.3em; margin-bottom: 20px; font-weight: bold; }
+        .options { display: grid; gap: 10px; }
+        label { display: block; padding: 15px; background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+        label:hover { background: #e9ecef; border-color: #4CAF50; }
+        input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
+        .feedback { margin-top: 15px; padding: 10px; border-radius: 5px; font-weight: bold; display: none; }
+        .correct { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .incorrect { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .nav-buttons { display: flex; gap: 10px; justify-content: space-between; margin-top: 20px; }
+        button { padding: 12px 24px; border: none; border-radius: 8px; font-size: 1em; cursor: pointer; transition: all 0.2s; flex: 1; }
+        .prev { background: #6c757d; color: white; }
+        .prev:hover { background: #5a6268; }
+        .next { background: #007bff; color: white; }
+        .next:hover { background: #0056b3; }
+        .finish { background: #28a745; color: white; }
+        .finish:hover { background: #218838; }
+        .summary { padding: 40px; text-align: center; display: none; }
+        .score { font-size: 3em; color: #4CAF50; margin: 20px 0; }
+        .answers { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: left; }
+        .answer-item { margin-bottom: 15px; padding: 10px; background: white; border-left: 4px solid #4CAF50; }
+        @media (max-width: 600px) { .question-container { padding: 20px; } .nav-buttons { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>QCM Fractions - Niveau 4e (Eduscol)</h1>
+            <p>10 questions sur addition, soustraction, multiplication, division, comparaison et simplification.</p>
+            <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+            <div>Question <span id="currentQ">1</span>/10 | Score: <span id="currentScore">0</span>/10</div>
+        </div>
+        <div class="question-container" id="quizContainer">
+            <div class="question" id="questionText"></div>
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback"></div>
+            <div class="nav-buttons">
+                <button class="prev" id="prevBtn" onclick="changeQuestion(-1)">Précédent</button>
+                <button class="next" id="nextBtn" onclick="changeQuestion(1)">Suivant</button>
+                <button class="finish" id="finishBtn" onclick="finishQuiz()">Terminer</button>
+            </div>
+        </div>
+        <div class="summary" id="summary">
+            <div class="score" id="finalScore"></div>
+            <p id="scoreMessage"></p>
+            <h3>Réponses détaillées :</h3>
+            <div class="answers" id="answersList"></div>
+            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px;">Refaire le QCM</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Quelle est la valeur de \\(\\frac{3}{4} + \\(\\frac{1}{4}\\)?",
+                options: ["\\(\\frac{1}{2}\\)", "\\(1\\)", "\\(\\frac{4}{4}\\)", "\\(\\frac{3}{8}\\)"],
+                answer: 1,
+                explanation: "Numérateurs identiques, additionner : 3+1=4, dénominateur commun 4."
+            },
+            {
+                question: "Simplifiez \\(\\frac{6}{8}\\).",
+                options: ["\\(\\frac{3}{4}\\)", "\\(\\frac{2}{3}\\)", "\\(\\frac{1}{2}\\)", "\\(\\frac{6}{4}\\)"],
+                answer: 0,
+                explanation: "Diviser numérateur et dénominateur par 2 : 6÷2=3, 8÷2=4."
+            },
+            {
+                question: "Comparez \\(\\frac{2}{5}\\) et \\(\\frac{3}{10}\\).",
+                options: ["\\(\\frac{2}{5} > \\(\\frac{3}{10}\\)", "\\(\\frac{2}{5} = \\(\\frac{3}{10}\\)", "\\(\\frac{2}{5} < \\(\\frac{3}{10}\\)", "Impossible"],
+                answer: 0,
+                explanation: "Dénominateur commun 10 : \\(\\frac{4}{10} > \\(\\frac{3}{10}\\)."
+            },
+            {
+                question: "Calculez \\(\\frac{2}{3} \\times \\frac{3}{4}\\).",
+                options: ["\\(\\frac{1}{2}\\)", "\\(\\frac{6}{12}\\)", "\\(\\frac{2}{4}\\)", "\\(\\frac{5}{7}\\)"],
+                answer: 0,
+                explanation: "Multiplier numérateurs 2×3=6, dénominateurs 3×4=12, simplifier en 1/2."
+            },
+            {
+                question: "Quelle est \\(\\frac{3}{5} - \\(\\frac{1}{5}\\)?",
+                options: ["\\(\\frac{2}{5}\\)", "\\(\\frac{4}{5}\\)", "\\(\\frac{2}{10}\\)", "\\(\\frac{3}{10}\\)"],
+                answer: 0,
+                explanation: "Dénominateurs identiques, soustraire : 3-1=2, dénominateur 5."
+            },
+            {
+                question: "Divisez \\(2 \\div \\(\\frac{1}{2}\\).",
+                options: ["1", "4", "1/4", "2"],
+                answer: 1,
+                explanation: "\\(2 \\times \\(\\frac{2}{1}\\) = 4, réciproque de 1/2 est 2/1."
+            },
+            {
+                question: "Quelle fraction est équivalente à \\(\\frac{4}{6}\\)?",
+                options: ["\\(\\frac{2}{3}\\)", "\\(\\frac{1}{2}\\)", "\\(\\frac{3}{4}\\)", "\\(\\frac{5}{6}\\)"],
+                answer: 0,
+                explanation: "Diviser par 2 : 4÷2=2, 6÷2=3. PGCD=2."
+            },
+            {
+                question: "Calculez \\(\\frac{3}{7} + \\(\\frac{2}{7}\\).",
+                options: ["\\(\\frac{5}{7}\\)", "\\(\\frac{5}{14}\\)", "\\(1\\)", "\\(\\frac{6}{7}\\)"],
+                answer: 0,
+                explanation: "Dénominateurs communs, 3+2=5, reste 7."
+            },
+            {
+                question: "Quelle est la fraction la plus grande : \\(\\frac{5}{8}\\), \\(\\frac{3}{4}\\), \\(\\frac{7}{10}\\)?",
+                options: ["\\(\\frac{5}{8}\\)", "\\(\\frac{3}{4}\\)", "\\(\\frac{7}{10}\\)", "\\(\\frac{5}{8}\\) et \\(\\frac{3}{4}\\)"],
+                answer: 2,
+                explanation: "Dénominateur 40 : 25/40, 30/40, 28/40. 30/40 max."
+            },
+            {
+                question: "\\(\\frac{1}{3} \\times 6 = ?",
+                options: ["2", "18", "1/2", "3"],
+                answer: 0,
+                explanation: "\\(6 = \\(\\frac{6}{1}\\), multiplier : 1×6=6, 3×1=3 → 6/3=2."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let answers = new Array(questions.length).fill(null);
+        let score = 0;
+
+        function loadQuestion(index) {
+            const q = questions[index];
+            document.getElementById('questionText').innerHTML = q.question;
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            q.options.forEach((opt, i) => {
+                const label = document.createElement('label');
+                label.innerHTML = `<input type="radio" name="answer" value="${i}"> ${opt.replace(/\\\(([^)]+)\\\)/g, '$1')}`;
+                optionsDiv.appendChild(label);
+            });
+            document.querySelector(`input[value="${answers[index]}"]`).checked = answers[index] !== null;
+            document.getElementById('feedback').style.display = 'none';
+            updateProgress();
+            updateButtons();
+        }
+
+        function showFeedback(index) {
+            const fb = document.getElementById('feedback');
+            const userAns = answers[index];
+            if (userAns !== null) {
+                const isCorrect = userAns === questions[index].answer;
+                if (isCorrect) {
+                    fb.textContent = '✓ Correct ! ' + questions[index].explanation;
+                    fb.className = 'feedback correct';
+                } else {
+                    fb.textContent = '✗ Faux. Correcte : ' + questions[index].explanation;
+                    fb.className = 'feedback incorrect';
+                }
+                fb.style.display = 'block';
+            }
+        }
+
+        function changeQuestion(delta) {
+            const newIndex = Math.max(0, Math.min(questions.length - 1, currentQuestion + delta));
+            saveAnswer();
+            currentQuestion = newIndex;
+            loadQuestion(currentQuestion);
+            showFeedback(currentQuestion);
+        }
+
+        function saveAnswer() {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            if (selected) {
+                const ans = parseInt(selected.value);
+                const prevAns = answers[currentQuestion];
+                answers[currentQuestion] = ans;
+                if (prevAns === null && ans === questions[currentQuestion].answer) {
+                    score++;
+                } else if (prevAns !== null && prevAns === questions[currentQuestion].answer && ans !== questions[currentQuestion].answer) {
+                    score--;
+                }
+                document.getElementById('currentScore').textContent = score;
+            }
+        }
+
+        function updateProgress() {
+            document.getElementById('currentQ').textContent = currentQuestion + 1;
+            document.getElementById('progressBar').style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+        }
+
+        function updateButtons() {
+            document.getElementById('prevBtn').style.display = currentQuestion === 0 ? 'none' : 'block';
+            document.getElementById('nextBtn').style.display = currentQuestion === questions.length - 1 ? 'none' : 'block';
+        }
+
+        function finishQuiz() {
+            saveAnswer();
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('summary').style.display = 'block';
+            document.getElementById('finalScore').textContent = `${score}/10`;
+            const percent = (score / 10) * 100;
+            let message = '';
+            if (percent >= 90) message = 'Excellent !';
+            else if (percent >= 70) message = 'Très bien.';
+            else if (percent >= 50) message = 'Bon travail.';
+            else message = 'Continuez les révisions.';
+            document.getElementById('scoreMessage').textContent = message;
+
+            const answersList = document.getElementById('answersList');
+            answersList.innerHTML = '';
+            questions.forEach((q, i) => {
+                const div = document.createElement('div');
+                div.className = 'answer-item';
+                div.innerHTML = `<strong>Q${i+1}:</strong> ${q.question}<br><strong>Réponse:</strong> ${q.options[q.answer]}<br><em>${q.explanation}</em>`;
+                answersList.appendChild(div);
+            });
+        }
+
+        // Événements
+        document.addEventListener('change', (e) => {
+            if (e.target.name === 'answer') saveAnswer();
+        });
+
+        // Init
+        loadQuestion(0);
+        updateButtons();
+        showFeedback(0);
+    </script>
+</body>
+</html>

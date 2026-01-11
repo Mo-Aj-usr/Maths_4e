@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QCM Fractions – Niveau 4e</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f4f4;
+            --text: #333;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .dashboard {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        .progress {
+            background: #eee;
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            background: var(--primary);
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        .explanation {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .correct { background: rgba(39,174,96,0.2); color: var(--success); }
+        .incorrect { background: rgba(231,76,60,0.2); color: var(--error); }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: var(--primary);
+            color: white;
+            transition: background 0.3s;
+        }
+        button:hover { background: #2980b9; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .summary {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .summary h2 { color: var(--primary); }
+        .summary-item { margin: 15px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .buttons { flex-direction: column; }
+            button { margin: 5px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>QCM Fractions – Niveau 4e</h1>
+        <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+        <div id="quiz"></div>
+        <div class="buttons">
+            <button id="prev">Précédent</button>
+            <button id="next">Suivant</button>
+            <button id="finish">Terminer</button>
+        </div>
+    </div>
+    <div class="summary" id="summary">
+        <h2>Bilan</h2>
+        <p id="score"></p>
+        <div id="answers"></div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Simplifiez la fraction 42/63.",
+                options: ["2/3", "6/9", "14/21", "42/63"],
+                correct: 0,
+                explanation: "Décomposez 42 = 2×3×7 et 63 = 3×3×7. Divisez numérateur et dénominateur par 3×7 = 21. Résultat : 2/3."
+            },
+            {
+                question: "Quel est le produit de deux nombres premiers qui n'est pas premier ?",
+                options: ["2×3=6", "5×1=5", "7×1=7", "11×2=22"],
+                correct: 0,
+                explanation: "Le produit de deux premiers (sauf 1) est composite. 2×3=6 est pair et divisible par 2 et 3."
+            },
+            {
+                question: "Décomposez 45 en facteurs premiers.",
+                options: ["3×3×5", "5×9", "3×15", "45×1"],
+                correct: 0,
+                explanation: "45 ÷ 3 = 15, 15 ÷ 3 = 5, 5 est premier. Donc 3²×5."
+            },
+            {
+                question: "Simplifiez 44/55.",
+                options: ["4/5", "8/10", "11/13", "44/55"],
+                correct: 0,
+                explanation: "44 = 2²×11, 55 = 5×11. Divisez par 11 : 4/5."
+            },
+            {
+                question: "La somme de deux nombres premiers peut-elle être première ?",
+                options: ["Non, toujours pair sauf si un est 2", "Oui toujours", "Non jamais", "Seulement si impairs"],
+                correct: 0,
+                explanation: "Deux impairs donnent pair (non premier sauf 2). Un pair (2) + impair donne impair, possiblement premier."
+            },
+            {
+                question: "Décomposez 320 en facteurs premiers.",
+                options: ["2^6 × 5", "2×160", "4×80", "5×64"],
+                correct: 0,
+                explanation: "320 ÷ 2 = 160, ÷2=80, ÷2=40, ÷2=20, ÷2=10, ÷2=5. Donc 2^6 × 5."
+            },
+            {
+                question: "Simplifiez 49/56.",
+                options: ["7/8", "49/56", "7/7", "1/8"],
+                correct: 0,
+                explanation: "49 = 7², 56 = 7×8. Divisez par 7 : 7/8."
+            },
+            {
+                question: "Quel est le PGCD de 62 et 93 ?",
+                options: ["31", "62", "93", "1"],
+                correct: 0,
+                explanation: "62 = 2×31, 93 = 3×31. PGCD = 31."
+            },
+            {
+                question: "Simplifiez 1105/65.",
+                options: ["17", "1105/65", "5×13", "221/13"],
+                correct: 0,
+                explanation: "1105 = 5×13×17, 65=5×13. Divisez par 5×13=65 : 17/1 = 17."
+            },
+            {
+                question: "Décomposez 1000 en facteurs premiers.",
+                options: ["2^3 × 5^3", "10^3", "2×500", "5×200"],
+                correct: 0,
+                explanation: "1000 = 10^3 = (2×5)^3 = 2^3 × 5^3."
+            }
+        ];
+
+        let current = 0;
+        let answers = Array(questions.length).fill(null);
+        const quiz = document.getElementById('quiz');
+        const prevBtn = document.getElementById('prev');
+        const nextBtn = document.getElementById('next');
+        const finishBtn = document.getElementById('finish');
+        const progressBar = document.getElementById('progress-bar');
+        const summary = document.getElementById('summary');
+        const scoreEl = document.getElementById('score');
+        const answersEl = document.getElementById('answers');
+
+        function renderQuestion() {
+            const q = questions[current];
+            quiz.innerHTML = `
+                <div class="question"><strong>Question ${current + 1} :</strong> ${q.question}</div>
+                <div class="options">
+                    ${q.options.map((opt, i) => `
+                        <label>
+                            <input type="radio" name="answer" value="${i}" ${answers[current] === i ? 'checked' : ''}>
+                            ${opt}
+                        </label>
+                    `).join('')}
+                </div>
+                <div id="explanation" class="explanation"></div>
+            `;
+            const radios = document.querySelectorAll('input[name="answer"]');
+            radios.forEach(r => r.addEventListener('change', handleAnswer));
+            if (answers[current] !== null) showExplanation();
+            updateButtons();
+            updateProgress();
+        }
+
+        function handleAnswer(e) {
+            answers[current] = parseInt(e.target.value);
+            showExplanation();
+        }
+
+        function showExplanation() {
+            const exp = document.getElementById('explanation');
+            const q = questions[current];
+            const isCorrect = answers[current] === q.correct;
+            exp.textContent = q.explanation + (isCorrect ? ' (Correct)' : ' (Incorrect)');
+            exp.classList.add(isCorrect ? 'correct' : 'incorrect');
+            exp.style.display = 'block';
+        }
+
+        function updateButtons() {
+            prevBtn.disabled = current === 0;
+            nextBtn.disabled = current === questions.length - 1;
+            finishBtn.disabled = answers.includes(null);
+        }
+
+        function updateProgress() {
+            const width = ((current + 1) / questions.length) * 100;
+            progressBar.style.width = `${width}%`;
+        }
+
+        prevBtn.addEventListener('click', () => { if (current > 0) { current--; renderQuestion(); } });
+        nextBtn.addEventListener('click', () => { if (current < questions.length - 1) { current++; renderQuestion(); } });
+        finishBtn.addEventListener('click', () => {
+            if (!answers.includes(null)) {
+                document.querySelector('.dashboard').style.display = 'none';
+                summary.style.display = 'block';
+                const score = answers.reduce((acc, ans, i) => acc + (ans === questions[i].correct ? 1 : 0), 0);
+                scoreEl.textContent = `Score : ${score} / ${questions.length}`;
+                answersEl.innerHTML = questions.map((q, i) => `
+                    <div class="summary-item">
+                        <strong>Question ${i+1} :</strong> ${q.question}<br>
+                        Votre réponse : ${q.options[answers[i]]} (${answers[i] === q.correct ? 'Correct' : 'Incorrect'})<br>
+                        Explication : ${q.explanation}
+                    </div>
+                `).join('');
+            }
+        });
+
+        renderQuestion();
+    </script>
+</body>
+</html>
